@@ -2,41 +2,54 @@
      2                                  ; file: quad.asm
      3                                  
      4                                  ; function grav
-     5                                  ; Return value:
-     6                                  ;   returns 1 if real roots found, else 0
-     7                                  ;FLD 	source 	loads a floating point number from memory onto the top of the stack. The source may be a single, double or extended precision number or a coprocessor register.
-     8                                  
-     9                                  ;FILD 	source reads an integer from memory, converts it to floating point and stores the result on top of the stack. The source may be either a word, double word or quad word.
-    10                                  ;FLD1 	stores a one on the top of the stack.
-    11                                  ;FLDZ 	stores a zero on the top of the stack.
-    12                                  
-    13                                  %define m1     qword [ebp+8]
-    14                                  %define m2     qword [ebp+16]
-    15                                  %define r      qword [ebp+24]
-    16                                  
-    17                                  segment .data
-    18 00000000 16AEDEF46858D23D        G: dq 6.674e-11 ;
-    19                                  
-    20                                  segment .bss
-    21 00000000 <res 00000008>          denom  resq 1
-    22 00000008 <res 00000008>          result  resq 1
-    23                                   
-    24                                  
-    25                                  segment .text
-    26                                          global  grav
-    27                                  grav:
-    28 00000000 C8000000                        enter   0,0
+     5                                  ; calculates the gravitation force according to the equation:
+     6                                  ;    G * m1 * m2
+     7                                  ;    -----------
+     8                                  ;       r * r
+     9                                  ;
+    10                                  ; G  : gravitational force constant
+    11                                  ; m1 : mass of body 1
+    12                                  ; m2 : mass of body 2
+    13                                  ; r : distance between bodies
+    14                                  ; Return value:
+    15                                  ;   returns 1 if real roots found, else 0
+    16                                  ;FLD 	source 	loads a floating point number from memory onto the top of the stack. The source may be a single, double or extended precision number or a coprocessor register.
+    17                                  
+    18                                  ;FILD 	source reads an integer from memory, converts it to floating point and stores the result on top of the stack. The source may be either a word, double word or quad word.
+    19                                  ;FLD1 	stores a one on the top of the stack.
+    20                                  ;FLDZ 	stores a zero on the top of the stack.
+    21                                  
+    22                                  %define m1     qword [ebp+8]
+    23                                  %define m2     qword [ebp+16]
+    24                                  %define r      qword [ebp+24]
+    25                                  
+    26                                  segment .data
+    27 00000000 16AEDEF46858D23D        G: dq 6.674e-11 ;
+    28                                   
     29                                  
-    30 00000004 DD05[00000000]                  fld    qword [G]      ; stack G
-    31 0000000A DC4D08                          fmul   m1             ; stack: G,m1
-    32 0000000D DC4D10                          fmul   m2             ; stack: G,m1,m2
-    33 00000010 DD4518                          fld    r
-    34 00000013 DC4D18                          fmul   r             ; stack: G*m1*m2,r,r
-    35 00000016 DD1D[00000000]                  fstp   qword [denom]
-    36 0000001C DC35[00000000]                  fdiv   qword [denom]
-    37 00000022 B800000000                      mov     eax,0           ; return value is 0
-    38                                  
-    39                                  quit:
-    40 00000027 C9                              leave
-    41 00000028 C3                              ret
-    42                                  
+    30                                  segment .text
+    31                                          global  grav
+    32                                  grav:
+    33 00000000 C8000000                        enter   0,0
+    34                                  
+    35 00000004 DD05[00000000]                  fld    qword [G]      ; stack G
+    36 0000000A DC4D08                          fmul   m1             ; stack: G*m1
+    37 0000000D DC4D10                          fmul   m2             ; stack: G*m1*m2
+    38 00000010 DD4518                          fld    r
+    39 00000013 DC4D18                          fmul   r             ; stack: r*r
+    40 00000016 D8F9                            fdivr  st1
+    41                                  
+    42                                  ; alternative
+    43                                          ;fld    qword [G]      ; stack G
+    44                                          ;fmul   m1             ; stack: G*m1
+    45                                          ;fmul   m2             ; stack: G*m1*m2
+    46                                          ;fld    r
+    47                                          ;fmul   r             ; stack: G*m1*m2,r*r
+    48                                          ;fstp   qword [denom]
+    49                                          ;fdiv   qword [denom]
+    50 00000018 B800000000                      mov     eax,0           ; return value is 0
+    51                                  
+    52                                  quit:
+    53 0000001D C9                              leave
+    54 0000001E C3                              ret
+    55                                  

@@ -25,10 +25,6 @@
 
 segment .data
 G: dq 6.674e-11 ;
-
-segment .bss
-denom  resq 1
-result  resq 1
  
 
 segment .text
@@ -37,12 +33,20 @@ grav:
         enter   0,0
 
         fld    qword [G]      ; stack G
-        fmul   m1             ; stack: G,m1
-        fmul   m2             ; stack: G,m1,m2
+        fmul   m1             ; stack: G*m1
+        fmul   m2             ; stack: G*m1*m2
         fld    r
-        fmul   r             ; stack: G*m1*m2,r,r
-        fstp   qword [denom]
-        fdiv   qword [denom]
+        fmul   r             ; stack: r*r
+        fdivr  st1
+
+; alternative
+        ;fld    qword [G]      ; stack G
+        ;fmul   m1             ; stack: G*m1
+        ;fmul   m2             ; stack: G*m1*m2
+        ;fld    r
+        ;fmul   r             ; stack: G*m1*m2,r*r
+        ;fstp   qword [denom]
+        ;fdiv   qword [denom]
         mov     eax,0           ; return value is 0
 
 quit:

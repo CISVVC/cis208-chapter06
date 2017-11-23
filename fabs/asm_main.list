@@ -1,0 +1,21 @@
+     1                                  ;
+     2                                  
+     3                                  %define a     qword [ebp+8]
+     4                                  
+     5                                  segment .data
+     6                                  
+     7                                  segment .bss
+     8                                   
+     9                                  
+    10                                  segment .text
+    11                                          global  the_function
+    12                                  the_function:
+    13 00000000 C8000000                        enter   0,0
+    14                                  
+    15 00000004 DD4508                          fld    a             ; stack: a
+    16 00000007 D9E1                            fabs                ; abs(a)
+    17 00000009 B800000000                      mov     eax,0           ; return value is 0
+    18                                  quit:
+    19 0000000E C9                              leave
+    20 0000000F C3                              ret
+    21                                  
