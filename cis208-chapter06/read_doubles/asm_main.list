@@ -1,0 +1,84 @@
+     1                                  
+     2                                  
+     3                                  ;
+     4                                  ; file: read.asm
+     5                                  ; This subroutine reads an array of doubles from a file
+     6                                  
+     7                                  segment .data
+     8 00000000 256C6600                format  db      "%lf", 0        ; format for fscanf()
+     9                                  
+    10                                  segment .bss
+    11                                  
+    12                                   
+    13                                  
+    14                                  segment .text
+    15                                          global  read_doubles
+    16                                          extern  fscanf
+    17                                  
+    18                                  %define SIZEOF_DOUBLE   8
+    19                                  %define FP              dword [ebp + 8]
+    20                                  %define ARRAYP          dword [ebp + 12]
+    21                                  %define ARRAY_SIZE      dword [ebp + 16]
+    22                                  %define TEMP_DOUBLE     [ebp - 8]
+    23                                  
+    24                                  ;
+    25                                  ; function read_doubles
+    26                                  ; C prototype:
+    27                                  ;   int read_doubles( FILE * fp, double * arrayp, int array_size );
+    28                                  ; This function reads doubles from a text file into an array, until
+    29                                  ; EOF or array is full.
+    30                                  ; Parameters:
+    31                                  ;   fp         - FILE pointer to read from (must be open for input)
+    32                                  ;   arrayp     - pointer to double array to read into
+    33                                  ;   array_size - number of elements in array
+    34                                  ; Return value:
+    35                                  ;   number of doubles stored into array (in EAX)
+    36                                  
+    37                                  read_doubles:
+    38 00000000 55                              push    ebp
+    39 00000001 89E5                            mov     ebp,esp
+    40 00000003 83EC08                          sub     esp, SIZEOF_DOUBLE      ; define one double on stack
+    41                                  
+    42 00000006 56                              push    esi                     ; save esi
+    43 00000007 8B750C                          mov     esi, ARRAYP             ; esi = ARRAYP
+    44 0000000A 31D2                            xor     edx, edx                ; edx = array index (initially 0)
+    45                                  
+    46                                  while_loop:
+    47 0000000C 3B5510                          cmp     edx, ARRAY_SIZE         ; is edx < ARRAY_SIZE?
+    48 0000000F 7D2B                            jnl     short quit              ; if not, quit loop
+    49                                  ;
+    50                                  ; call fscanf() to read a double into TEMP_DOUBLE
+    51                                  ; fscanf() might change edx so save it
+    52                                  ;
+    53 00000011 52                              push    edx                     ; save edx
+    54 00000012 8D45F8                          lea     eax, TEMP_DOUBLE
+    55 00000015 50                              push    eax                     ; push &TEMP_DOUBLE
+    56 00000016 68[00000000]                    push    dword format            ; push &format
+    57 0000001B FF7508                          push    FP                      ; push file pointer
+    58 0000001E E8(00000000)                    call    fscanf
+    59 00000023 83C40C                          add     esp, 12
+    60 00000026 5A                              pop     edx                     ; restore edx
+    61 00000027 83F801                          cmp     eax, 1                  ; did fscanf return 1?
+    62 0000002A 7510                            jne     short quit              ; if not, quit loop
+    63                                  
+    64                                  ;
+    65                                  ; copy TEMP_DOUBLE into ARRAYP[edx]
+    66                                  ; (The 8-bytes of the double are copied by two 4-byte copies)
+    67                                  ;
+    68 0000002C 8B45F8                          mov     eax, [ebp - 8]
+    69 0000002F 8904D6                          mov     [esi + 8*edx], eax      ; first copy lowest 4 bytes
+    70 00000032 8B45FC                          mov     eax, [ebp - 4]
+    71 00000035 8944D604                        mov     [esi + 8*edx + 4], eax  ; next copy highest 4 bytes
+    72                                  
+    73 00000039 42                              inc     edx
+    74 0000003A EBD0                            jmp     while_loop
+    75                                  
+    76                                  quit:
+    77 0000003C 5E                              pop     esi                     ; restore esi
+    78                                  
+    79 0000003D 89D0                            mov     eax, edx                ; store return value into eax
+    80                                  
+    81 0000003F 89EC                            mov     esp, ebp
+    82 00000041 5D                              pop     ebp
+    83 00000042 C3                              ret 
+    84                                  

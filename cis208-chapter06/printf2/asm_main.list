@@ -1,0 +1,90 @@
+     1                                  ;
+     2                                  ; file: asm_main.asm
+     3                                  
+     4                                  %include "asm_io.inc"
+     5                              <1> 	extern  read_int, print_int, print_string
+     6                              <1> 	extern	read_char, print_char, print_nl
+     7                              <1> 	extern  sub_dump_regs, sub_dump_mem, sub_dump_math, sub_dump_stack
+     8                              <1> 
+     9                              <1> %macro 	dump_regs 1
+    10                              <1> 	push	  dword %1
+    11                              <1> 	call	  sub_dump_regs
+    12                              <1> %endmacro
+    13                              <1> 
+    14                              <1> 
+    15                              <1> ;
+    16                              <1> ; usage: dump_mem label, start-address, # paragraphs
+    17                              <1> %macro  dump_mem 3
+    18                              <1> 	push	 dword %1
+    19                              <1> 	push	 dword %2
+    20                              <1> 	push	 dword %3
+    21                              <1> 	call	 sub_dump_mem
+    22                              <1> %endmacro
+    23                              <1> 
+    24                              <1> %macro	dump_math 1
+    25                              <1> 	push	 dword %1
+    26                              <1> 	call	 sub_dump_math
+    27                              <1> %endmacro
+    28                              <1> 
+    29                              <1> %macro  dump_stack 3
+    30                              <1> 	push	 dword %3
+    31                              <1>         push     dword %2
+    32                              <1> 	push	 dword %1
+    33                              <1>         call     sub_dump_stack
+    34                              <1> %endmacro
+    35                                  ;
+    36                                  ; initialized data is put in the .data segment
+    37                                  ;
+    38                                  %define  SIZE 10
+    39                                  segment .data
+    40                                  ; next print out result message as series of steps
+    41 00000000 48656C6C6F20776F72-     msg:    db "Hello world: %c %s of length %d %d %X %e %E",10,0
+    42 00000009 6C643A202563202573-
+    43 00000012 206F66206C656E6774-
+    44 0000001B 682025642025642025-
+    45 00000024 582025652025450A00 
+    46                                  					; format string for printf
+    47 0000002D 61                      char1:	db	'a'			; a character 
+    48 0000002E 737472696E6700          str1:	db	"string",0	        ; a C string, "string" needs 0
+    49                                  len:	equ	$-str1			; len has value, not an address
+    50 00000035 87D61200                inta1:	dd	1234567		        ; integer 1234567
+    51 00000039 CDAB8967                hex1:	dd	0x6789ABCD	        ; hex constant 
+    52 0000003D BB16D80E                flt1:	dd	5.327e-30		; 32-bit floating point
+    53 00000041 6ED768D3250BA7FE        flt2:	dq	-123.456789e300	        ; 64-bit floating point
+    54                                  ; uninitialized data is put in the .bss segment
+    55                                  ;
+    56                                  segment .bss
+    57 00000000 <res 00000008>          flttmp:	resq 1			        ; 64-bit temporary for printing flt1
+    58                                  
+    59                                  ;
+    60                                  ; code is put in the .text segment
+    61                                  ;
+    62                                  segment .text
+    63                                          global  asm_main
+    64                                  		extern  printf
+    65                                  asm_main:
+    66 00000000 C8000000                        enter   0,0               ; setup routine
+    67 00000004 60                              pusha
+    68                                  
+    69 00000005 D905[3D000000]          		fld	dword [flt1]	        ; need to convert 32-bit to 64-bit
+    70 0000000B DD1D[00000000]          		fstp	qword [flttmp]          ; floating load makes 80-bit,
+    71                                  										; store as 64-bit
+    72                                  										; push last argument first
+    73 00000011 FF35[45000000]          		push	dword [flt2+4]	        ; 64 bit floating point (bottom)
+    74 00000017 FF35[41000000]          		push	dword [flt2]	        ; 64 bit floating point (top)
+    75 0000001D FF35[04000000]          		push	dword [flttmp+4]        ; 64 bit floating point (bottom)
+    76 00000023 FF35[00000000]          		push	dword [flttmp]	        ; 64 bit floating point (top)
+    77 00000029 FF35[39000000]          		push	dword [hex1]	        ; hex constant
+    78 0000002F FF35[35000000]          		push	dword [inta1]	        ; integer data pass by value
+    79 00000035 6A07                    		push	dword len	        ; constant pass by value
+    80 00000037 68[2E000000]            		push	dword str1		; "string" pass by reference 
+    81 0000003C FF35[2D000000]                  push    dword [char1]		; 'a'
+    82 00000042 68[00000000]                    push    dword msg		; address of format string
+    83 00000047 E8(00000000)                    call    printf			; Call C function
+    84 0000004C 83C428                          add     esp, 40			; pop stack 10*4 bytes
+    85 0000004F 61                              popa
+    86 00000050 B800000000                      mov     eax, 0            ; return back to C
+    87 00000055 C9                              leave                     
+    88 00000056 C3                              ret
+    89                                  
+    90                                  

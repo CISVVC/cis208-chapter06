@@ -1,0 +1,80 @@
+     1                                  ;
+     2                                  ; file: asm_main.asm
+     3                                  
+     4                                  %include "asm_io.inc"
+     5                              <1> 	extern  read_int, print_int, print_string
+     6                              <1> 	extern	read_char, print_char, print_nl
+     7                              <1> 	extern  sub_dump_regs, sub_dump_mem, sub_dump_math, sub_dump_stack
+     8                              <1> 
+     9                              <1> %macro 	dump_regs 1
+    10                              <1> 	push	  dword %1
+    11                              <1> 	call	  sub_dump_regs
+    12                              <1> %endmacro
+    13                              <1> 
+    14                              <1> 
+    15                              <1> ;
+    16                              <1> ; usage: dump_mem label, start-address, # paragraphs
+    17                              <1> %macro  dump_mem 3
+    18                              <1> 	push	 dword %1
+    19                              <1> 	push	 dword %2
+    20                              <1> 	push	 dword %3
+    21                              <1> 	call	 sub_dump_mem
+    22                              <1> %endmacro
+    23                              <1> 
+    24                              <1> %macro	dump_math 1
+    25                              <1> 	push	 dword %1
+    26                              <1> 	call	 sub_dump_math
+    27                              <1> %endmacro
+    28                              <1> 
+    29                              <1> %macro  dump_stack 3
+    30                              <1> 	push	 dword %3
+    31                              <1>         push     dword %2
+    32                              <1> 	push	 dword %1
+    33                              <1>         call     sub_dump_stack
+    34                              <1> %endmacro
+    35                                  ;
+    36                                  ; initialized data is put in the .data segment
+    37                                  ;
+    38                                  %define  SIZE 10
+    39                                  segment .data
+    40 00000000 25660A00                print_format db "%f",0xA,0
+    41 00000004 BB16D80E                flt1:  dd 5.327e-30
+    42 00000008 6ED768D3250BA7FE        flt2:  dq -123.456789e300
+    43                                  ; uninitialized data is put in the .bss segment
+    44                                  ;
+    45                                  segment .bss
+    46 00000000 <res 00000050>          array resq SIZE
+    47 00000050 <res 00000008>          sum resq 1
+    48                                  
+    49                                  ;
+    50                                  ; code is put in the .text segment
+    51                                  ;
+    52                                  segment .text
+    53                                          global  asm_main
+    54                                  		extern  printf
+    55                                  asm_main:
+    56 00000000 C8000000                        enter   0,0               ; setup routine
+    57 00000004 60                              pusha
+    58                                  ; next print out result message as series of steps
+    59                                  
+    60 00000005 B90A000000              		mov ecx, SIZE
+    61 0000000A BE[00000000]            		mov esi, array
+    62                                  ;		fldz ; ST0 = 0
+    63 0000000F D905[08000000]                  fld dword [flt2]
+    64                                  lp:
+    65 00000015 DC06                    		fadd qword [esi] ; ST0 += *(esi)
+    66 00000017 83C608                  		add esi, 8 ; move to next double
+    67 0000001A E2F9                    		loop lp
+    68                                  
+    69 0000001C DD1D[50000000]          		fstp qword [sum] ; store result into sum
+    70 00000022 FF35[54000000]          		push dword [sum+4] ; store result into stack (MSB)
+    71 00000028 FF35[50000000]          		push dword [sum] ; store result into stack (LSB)
+    72 0000002E 68[00000000]            		push print_format
+    73 00000033 E8(00000000)            		call printf
+    74 00000038 83C40C                          add  esp,12
+    75 0000003B 61                              popa
+    76 0000003C B800000000                      mov     eax, 0            ; return back to C
+    77 00000041 C9                              leave                     
+    78 00000042 C3                              ret
+    79                                  
+    80                                  
