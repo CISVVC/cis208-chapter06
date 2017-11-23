@@ -1,0 +1,27 @@
+     1                                  ;
+     2                                  ;FLD 	source 	loads a floating point number from memory onto the top of the stack. The source may be a single, double or extended precision number or a coprocessor register.
+     3                                  
+     4                                  ;FILD 	source reads an integer from memory, converts it to floating point and stores the result on top of the stack. The source may be either a word, double word or quad word.
+     5                                  ;FLD1 	stores a one on the top of the stack.
+     6                                  ;FLDZ 	stores a zero on the top of the stack.
+     7                                  
+     8                                  %define a     qword [ebp+8]
+     9                                  %define b     qword [ebp+16]
+    10                                  
+    11                                  segment .data
+    12                                  
+    13                                  segment .bss
+    14                                   
+    15                                  
+    16                                  segment .text
+    17                                          global  add
+    18                                  add:
+    19 00000000 C8000000                        enter   0,0
+    20                                  
+    21 00000004 DD4508                          fld     a
+    22 00000007 DC4510                          fadd   b
+    23                                  
+    24                                  quit:
+    25 0000000A C9                              leave
+    26 0000000B C3                              ret
+    27                                  

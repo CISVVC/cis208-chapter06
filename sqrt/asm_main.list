@@ -1,0 +1,23 @@
+     1                                  ;
+     2                                  
+     3                                  %define a     qword [ebp+8]
+     4                                  %define b     qword [ebp+16]
+     5                                  
+     6                                  segment .data
+     7                                  
+     8                                  segment .bss
+     9                                   
+    10                                  
+    11                                  segment .text
+    12                                          global  the_function
+    13                                  the_function:
+    14 00000000 C8000000                        enter   0,0
+    15                                  
+    16 00000004 DD4508                          fld    a             ; stack: a
+    17 00000007 DC4510                          fadd   b             ; stack: a+b
+    18 0000000A D9FA                            fsqrt                ; sqrt(a+b)
+    19 0000000C B800000000                      mov     eax,0           ; return value is 0
+    20                                  quit:
+    21 00000011 C9                              leave
+    22 00000012 C3                              ret
+    23                                  
