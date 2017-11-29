@@ -18,7 +18,10 @@ int main()
   int i,n;
   double a[MAX];
 
-  n = read_doubles(stdin, a, MAX);
+  //FILE *fptr;
+  //fptr = (fopen("numbers.txt", "r"));
+  //n = read_doubles(fptr, a, MAX);
+  n = read_doubles((fopen("numbers.txt", "r")), a, MAX);
 
   for( i=0; i < n; i++ )
     printf("%3d %g\n", i, a[i]);

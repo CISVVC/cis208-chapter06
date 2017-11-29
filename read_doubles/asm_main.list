@@ -65,10 +65,10 @@
     65                                  ; copy TEMP_DOUBLE into ARRAYP[edx]
     66                                  ; (The 8-bytes of the double are copied by two 4-byte copies)
     67                                  ;
-    68 0000002C 8B45F8                          mov     eax, [ebp - 8]
-    69 0000002F 8904D6                          mov     [esi + 8*edx], eax      ; first copy lowest 4 bytes
+    68 0000002C 8B45F8                          mov     eax, TEMP_DOUBLE
+    69 0000002F 8904D6                          mov     [esi + SIZEOF_DOUBLE*edx], eax      ; first copy lowest 4 bytes
     70 00000032 8B45FC                          mov     eax, [ebp - 4]
-    71 00000035 8944D604                        mov     [esi + 8*edx + 4], eax  ; next copy highest 4 bytes
+    71 00000035 8944D604                        mov     [esi + SIZEOF_DOUBLE*edx + 4], eax  ; next copy highest 4 bytes
     72                                  
     73 00000039 42                              inc     edx
     74 0000003A EBD0                            jmp     while_loop

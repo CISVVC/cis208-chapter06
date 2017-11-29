@@ -1,3 +1,6 @@
+/**
+ * prints the bits that make up a double value
+ */
 #include<iostream>
 
 typedef unsigned long long uint64;
@@ -20,7 +23,10 @@ void print_double(double d)
 
 int main()
 {
-    print_double(23.85);
+    double number = 23.85;
+    std::cout << "original number: " << number << std::endl;
+    std::cout << "binary : ";
+    print_double(number);
 
     return 0;
 }
