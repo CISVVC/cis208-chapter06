@@ -15,7 +15,7 @@ segment .text
         global  read_doubles
         extern  fscanf
 
-%define SIZEOF_DOUBLE   8
+%define DOUBLE   8
 %define FP              dword [ebp + 8]
 %define ARRAYP          dword [ebp + 12]
 %define ARRAY_SIZE      dword [ebp + 16]
@@ -36,8 +36,8 @@ segment .text
 
 read_doubles:
         push    ebp
-        mov     ebp,esp
-        sub     esp, SIZEOF_DOUBLE      ; define one double on stack
+        mov     ebp,esp          ; set up stack frame
+        sub     esp, DOUBLE      ; define one double on stack
 
         push    esi                     ; save esi
         mov     esi, ARRAYP             ; esi = ARRAYP
@@ -66,9 +66,9 @@ while_loop:
 ; (The 8-bytes of the double are copied by two 4-byte copies)
 ;
         mov     eax, TEMP_DOUBLE
-        mov     [esi + SIZEOF_DOUBLE*edx], eax      ; first copy lowest 4 bytes
+        mov     [esi + DOUBLE*edx], eax      ; first copy lowest 4 bytes
         mov     eax, [ebp - 4]
-        mov     [esi + SIZEOF_DOUBLE*edx + 4], eax  ; next copy highest 4 bytes
+        mov     [esi + DOUBLE*edx + 4], eax  ; next copy highest 4 bytes
 
         inc     edx
         jmp     while_loop

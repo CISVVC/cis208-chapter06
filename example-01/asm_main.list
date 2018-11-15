@@ -1,0 +1,87 @@
+     1                                  ; file: asm_main.asm
+     2                                  ;
+     3                                  ; An assembly function that repeatedly asks user for an r p or s for rock, paper scissors
+     4                                  ; The function will keep on asking the user for the number until it is valid. 
+     5                                  ; 
+     6                                  
+     7                                  %include "asm_io.inc"
+     8                              <1> 	extern  read_int, print_int, print_string,print_hex
+     9                              <1> 	extern	read_char, print_char, print_nl
+    10                              <1> 	extern  sub_dump_regs, sub_dump_mem, sub_dump_math, sub_dump_stack
+    11                              <1> 
+    12                              <1> %macro 	dump_regs 1
+    13                              <1> 	push	  dword %1
+    14                              <1> 	call	  sub_dump_regs
+    15                              <1> %endmacro
+    16                              <1> 
+    17                              <1> 
+    18                              <1> ;
+    19                              <1> ; usage: dump_mem label, start-address, # paragraphs
+    20                              <1> %macro  dump_mem 3
+    21                              <1> 	push	 dword %1
+    22                              <1> 	push	 dword %2
+    23                              <1> 	push	 dword %3
+    24                              <1> 	call	 sub_dump_mem
+    25                              <1> %endmacro
+    26                              <1> 
+    27                              <1> %macro	dump_math 1
+    28                              <1> 	push	 dword %1
+    29                              <1> 	call	 sub_dump_math
+    30                              <1> %endmacro
+    31                              <1> 
+    32                              <1> %macro  dump_stack 3
+    33                              <1> 	push	 dword %3
+    34                              <1>         push     dword %2
+    35                              <1> 	push	 dword %1
+    36                              <1>         call     sub_dump_stack
+    37                              <1> %endmacro
+    38                                  %define SIZE 5
+    39                                  segment .data
+    40                                  ;
+    41                                  ; Output strings
+    42                                  ;
+    43                                  
+    44                                  segment .bss
+    45 00000000 <res 00000028>          array        resq SIZE
+    46 00000028 <res 00000008>          sum          resq 1
+    47                                  
+    48                                  
+    49                                  segment .text
+    50                                          global  asm_main
+    51                                  asm_main:
+    52 00000000 C8000000                        enter   0,0             ;setup routine
+    53 00000004 60                              pusha
+    54 00000005 C705[00000000]0100-             mov    DWORD [array],1
+    55 0000000D 0000               
+    56 0000000F C705[04000000]0000-             mov    DWORD [array+4],0
+    57 00000017 0000               
+    58 00000019 C705[08000000]0200-             mov    DWORD [array+8],2
+    59 00000021 0000               
+    60 00000023 C705[0C000000]0000-             mov    DWORD [array+12],0
+    61 0000002B 0000               
+    62 0000002D C705[10000000]0300-             mov    DWORD [array + 16],3
+    63 00000035 0000               
+    64 00000037 C705[14000000]0000-             mov    DWORD [array + 20],0
+    65 0000003F 0000               
+    66 00000041 C705[18000000]0400-             mov    DWORD [array + 24],4
+    67 00000049 0000               
+    68 0000004B C705[1C000000]0000-             mov    DWORD [array + 28],0
+    69 00000053 0000               
+    70 00000055 C705[20000000]0500-             mov    DWORD [array + 32],5
+    71 0000005D 0000               
+    72 0000005F C705[24000000]0000-             mov    DWORD [array + 36],0
+    73 00000067 0000               
+    74 00000069 B905000000              		mov    ecx, SIZE
+    75 0000006E BE[00000000]            		mov    esi, array
+    76 00000073 D9EE                    		fldz   			; ST0 = 0
+    77                                  lp:
+    78 00000075 DC06                    		fadd   qword [esi] ; ST0 += *(esi)
+    79 00000077 83C608                  		add    esi, 8 		; move to next double
+    80 0000007A E2F9                    		loop   lp
+    81                                  b1:
+    82 0000007C DD1D[28000000]          		fstp   QWORD [sum] 	; store result into sum
+    83                                          
+    84 00000082 61                              popa
+    85 00000083 B800000000                      mov     eax, 0            ; return back to C
+    86 00000088 C9                              leave                     
+    87 00000089 C3                              ret

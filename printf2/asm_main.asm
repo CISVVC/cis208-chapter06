@@ -32,7 +32,7 @@ asm_main:
         enter   0,0               ; setup routine
         pusha
 
-		fld	dword [flt1]	        ; need to convert 32-bit to 64-bit
+		fld	    dword [flt1]	        ; need to convert 32-bit to 64-bit
 		fstp	qword [flttmp]          ; floating load makes 80-bit,
 										; store as 64-bit
 										; push last argument first
